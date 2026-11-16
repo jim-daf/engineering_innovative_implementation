@@ -1,0 +1,9 @@
+// Test fixture: an app that still supports Android 4.1 (API 16).
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.example.old"
+        minSdkVersion 16
+        targetSdkVersion 28
+    }
+}
