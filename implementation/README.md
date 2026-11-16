@@ -5,7 +5,7 @@ It takes an **APK** or a **source code folder**, applies the 7 rules, proposes a
 finding, writes a report with all detections and fixes, and applies the fixes if you ask for it.
 For an APK it then rebuilds and signs a patched APK.
 
-It is a small rewrite of hybrid_fixer: the same window, 7 rules instead of 33, and much less code.
+
 
 ## Requirements
 
@@ -171,42 +171,12 @@ device, the original app has to be uninstalled first. For a release, fix the sou
 | `hybrid_patcher/rules.py` | 597 | The 7 rules: detection and fix, for source code and for decoded APKs |
 | `hybrid_patcher/pipeline.py` | 408 | Source pipeline, APK pipeline, bulk run, reports |
 | `hybrid_patcher/__main__.py` | 109 | Command line |
-| `hybrid_patcher/gui.py` | 1639 | The windows (taken from hybrid_fixer, connected to the new pipeline) |
+| `hybrid_patcher/gui.py` | 1639 | The windows  |
 | `hybrid_patcher/stats.py`, `charts.py` | 832 | Numbers and charts for the statistics window |
 | `tests/test_hybrid_patcher.py` | 424 | 19 tests, with sample apps in `tests/fixtures` and an APK in `tests/apks` |
 
 Run the tests with `python -m unittest discover -s tests`.
 
-### Compared with hybrid_fixer
-
-| | hybrid_fixer | HybridPatcher |
-|---|---|---|
-| Rules | 33 | 7 |
-| Code without the UI | 22 files, about 7,300 lines (15 files and 5,360 lines without the helper scripts) | 4 files, 1,123 lines |
-| Where a rule lives | Pattern, detector, source patch and smali patch in four files | Detection and fix together in `rules.py` |
-| APK analysis | Decompiles to Java (jadx) to detect, patches smali separately | Detects and patches on the same decoded classes |
-| Building from source (git clone + gradle) | Yes | No, not part of the pipeline |
-
-## How it was checked
-
-- **Source code, 38 open-source apps.** hybrid_fixer's 7 matching rules report 117 findings,
-  HybridPatcher 109. All 109 are also hybrid_fixer findings (same rule, same file). The other 8
-  are commented-out code, text inside a string or a Javadoc comment, and duplicates of one call.
-- **Source fixes.** 102 of the 109 findings get a fix; 7 Rule 5 findings do not (minSdk below 19,
-  or two-argument `loadUrl`). After fixing, a new scan reports only those 7, a second run changes
-  nothing, line endings are kept, and all 37 changed Java files still parse with `javac`.
-- **APKs, 22 apps.** Findings per rule, hybrid_fixer (decompiled Java) / HybridPatcher:
-  Rule 1: 1/1, Rule 2: 7/6, Rule 3: 2/2, Rule 4: 3/3, Rule 5: 12/12, Rule 6: 3/3, Rule 7: 0/1.
-  The differences were checked by hand in the bytecode: hybrid_fixer counts one unguarded call
-  three times in one app and reports one call that is inside a try range; HybridPatcher finds
-  two Kotlin cases and one `proceed()` (called when an app setting allows it) that hybrid_fixer
-  misses.
-- **Patched APKs.** 7 of the 22 APKs were patched. Each one has a valid signature
-  (`apksigner verify`), its dex files are accepted by Android's `d8`, and a new scan of the
-  patched APK finds nothing left that can be fixed.
-
-Not checked: the patched APKs were not installed and run on a device or emulator, and the patched
-source trees were not built with Gradle (the changed Kotlin files were not compiled).
 
 ## Limits
 
